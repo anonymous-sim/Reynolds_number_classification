@@ -1,0 +1,66 @@
+@font-face {
+    font-family: 'Inter';
+    src: url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+}
+
+.font-inter {
+    font-family: 'Inter', sans-serif;
+}
+
+.tooltip {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(5px);
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.group:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.shadow-3xl {
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15);
+}
+
+.fixed-width {
+    min-width: 20rem;
+    max-width: 20rem;
+}
+
+#canvas-container {
+    width: 100%;
+    max-width: 1200px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 4px 8px;
+    word-break: break-word;
+    font-size: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}

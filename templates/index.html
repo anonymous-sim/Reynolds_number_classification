@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reynolds Number Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen flex items-center justify-center p-4 md:p-6 font-inter">
+    <!-- Welcome Popup Modal -->
+    <div id="welcome-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all scale-100 relative">
+            <!-- Close Button (X) -->
+            <button id="close-welcome-x" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors duration-200 z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-indigo-900 mb-2">Welcome to Reynolds Number Classification</h3>
+                <p class="text-gray-600 italic text-sm">Explore fluid flow regimes using machine learning visualization</p>
+            </div>
+            
+            <div class="space-y-3 mb-6">
+                <a href="https://docs.google.com/presentation/d/1d0lbtVOs9_RnGKWNVMQuS5g5YoEatsaWRZkay3WOw_c/edit?usp=sharing" 
+                   target="_blank" 
+                   class="block w-full px-4 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-md">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    View Google Slides Presentation
+                </a>
+                <a href="Github repo link" 
+                   target="_blank" 
+                   class="block w-full px-4 py-3 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-900 transition-all duration-300 flex items-center justify-center gap-2 shadow-md">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    Visit GitHub Repository
+                </a>
+            </div>
+            
+            <button id="close-welcome-btn" class="w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-300">
+                Start Exploring
+            </button>
+        </div>
+    </div>
+
+    <div class="container max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+        <!-- Left: Input Sliders and Output -->
+        <div class="w-full lg:w-96 bg-white rounded-2xl shadow-2xl p-8 transform transition-all hover:shadow-3xl fixed-width">
+            <h2 class="text-3xl font-bold text-indigo-900 mb-6 transition-all duration-300 hover:text-indigo-700">Input Features</h2>
+            <div class="space-y-6">
+                <div>
+                    <label for="medium" class="block text-sm font-semibold text-indigo-700">Medium:</label>
+                    <select id="medium" onchange="updateMedium()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all duration-300 hover:border-indigo-400">
+                        <option value="liquid">Liquid</option>
+                        <option value="gas">Gas</option>
+                    </select>
+                </div>
+                <div class="relative group">
+                    <label for="density" class="block text-sm font-semibold text-indigo-700">Density (kg/m³): <span id="density-value" class="text-indigo-600">1000</span></label>
+                    <input type="range" id="density" min="714.8070046892694" max="1050.2098650991347" value="1000" step="0.30491169128169576" oninput="updateValue('density')" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-indigo-600 transition-all duration-300">
+                    <span class="tooltip absolute hidden bg-indigo-600 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 group-hover:block group-hover:opacity-100 transition-opacity duration-300">Density (714.81–1050.21 kg/m³)</span>
+                </div>
+                <div class="relative group">
+                    <label for="velocity" class="block text-sm font-semibold text-indigo-700">Velocity (m/s): <span id="velocity-value" class="text-indigo-600">0.5</span></label>
+                    <input type="range" id="velocity" min="0" max="8.451995705516785" value="0.5" step="0.008044757410692683" oninput="updateValue('velocity')" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-indigo-600 transition-all duration-300">
+                    <span class="tooltip absolute hidden bg-indigo-600 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 group-hover:block group-hover:opacity-100 transition-opacity duration-300">Velocity (0–8.45 m/s)</span>
+                </div>
+                <div class="relative group">
+                    <label for="diameter" class="block text-sm font-semibold text-indigo-700">Diameter (m): <span id="diameter-value" class="text-indigo-600">0.01</span></label>
+                    <input type="range" id="diameter" min="0" max="0.36748163999068206" value="0.01" step="0.00034969670529363977" oninput="updateValue('diameter')" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-indigo-600 transition-all duration-300">
+                    <span class="tooltip absolute hidden bg-indigo-600 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 group-hover:block group-hover:opacity-100 transition-opacity duration-300">Diameter (0–0.3675 m)</span>
+                </div>
+                <div class="relative group">
+                    <label for="viscosity" class="block text-sm font-semibold text-indigo-700">Viscosity (Pa·s): <span id="viscosity-value" class="text-indigo-600">0.001</span></label>
+                    <input type="range" id="viscosity" min="0" max="0.01380828446991151" value="0.001" step="1.28175333789182e-05" oninput="updateValue('viscosity')" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-indigo-600 transition-all duration-300">
+                    <span class="tooltip absolute hidden bg-indigo-600 text-white text-xs rounded py-1 px-2 -top-8 left-1/2 transform -translate-x-1/2 group-hover:block group-hover:opacity-100 transition-opacity duration-300">Viscosity (0–0.01381 Pa·s)</span>
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold text-indigo-900 mb-4 transition-all duration-300 hover:text-indigo-700">Output</h3>
+                    <p class="text-sm">Actual Regime: <span id="actual-regime" class="font-semibold text-indigo-600">N/A</span></p>
+                    <p class="text-sm">Predicted Regime: <span id="predicted-regime" class="font-semibold text-indigo-600">N/A</span></p>
+                    <!--<button id="clssf-report-btn" class="mt-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-all duration-300">Clssf Report</button>-->
+                    <div class="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                        <h4 class="text-sm font-semibold text-indigo-700 mb-2">Test Metrics</h4>
+                        <ul id="test-metrics" class="text-sm text-gray-700">
+                            <li>Test Accuracy (Gas): <span class="font-semibold">0.9926</span></li>
+                            <li>Test Accuracy (Liquid): <span class="font-semibold">0.9966</span></li>
+                        </ul>
+                    </div>
+                    <div class="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                        <h4 class="text-sm font-semibold text-indigo-700 mb-2">Feature and Output Neuron Colors</h4>
+                        <div class="flex flex-wrap gap-4">
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block mr-2" style="background-color: #FF5555;"></span>
+                                <span class="text-sm">Density</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block mr-2" style="background-color: #5555FF;"></span>
+                                <span class="text-sm">Velocity</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block mr-2" style="background-color: #55FF55;"></span>
+                                <span class="text-sm">Diameter</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block mr-2" style="background-color: #FFFF55;"></span>
+                                <span class="text-sm">Viscosity</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block mr-2" style="background-color: #00CED1;"></span>
+                                <span class="text-sm">Laminar Output</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block mr-2" style="background-color: #FFA500;"></span>
+                                <span class="text-sm">Transitional Output</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-4 h-4 inline-block mr-2" style="background-color: #FF4500;"></span>
+                                <span class="text-sm">Turbulent Output</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Project Links Box -->
+                    <div class="mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                        <h4 class="text-sm font-semibold text-indigo-700 mb-3">Project Resources</h4>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <a href="https://docs.google.com/presentation/d/1d0lbtVOs9_RnGKWNVMQuS5g5YoEatsaWRZkay3WOw_c/edit?usp=sharing" 
+                               target="_blank" 
+                               class="flex-1 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-all duration-300 text-center flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                                Google Slides
+                            </a>
+                            <a href="Github repo link" 
+                               target="_blank" 
+                               class="flex-1 px-4 py-2 bg-gray-800 text-white text-sm font-semibold rounded-lg hover:bg-gray-900 transition-all duration-300 text-center flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                                GitHub
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right: Neural Network Visualization -->
+        <div class="flex-grow bg-white rounded-2xl shadow-2xl p-8 transform transition-all hover:shadow-3xl">
+            <h2 class="text-3xl font-bold text-indigo-900 mb-6 text-center transition-all duration-300 hover:text-indigo-700">Neural Network Visualization</h2>
+            <p id="network-loader" class="text-gray-500 italic text-center mb-6">Adjust sliders to visualize the neural network</p>
+            <div id="canvas-container" class="flex justify-center mb-6"></div>
+        </div>
+    </div>
+
+    <!-- Classification Report Modal -->
+    <div id="clssf-report-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-semibold text-indigo-700">Classification Report</h4>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700 text-xl">×</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="clssf-report-table" class="w-full text-sm text-gray-700 border-collapse">
+                    <thead>
+                        <tr class="bg-indigo-100">
+                            <th class="border border-gray-300 p-2">Class</th>
+                            <th class="border border-gray-300 p-2">Precision</th>
+                            <th class="border border-gray-300 p-2">Recall</th>
+                            <th class="border border-gray-300 p-2">F1-Score</th>
+                            <th class="border border-gray-300 p-2">Support</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated dynamically by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/sketch.js" defer></script>
+    <script>
+        // Welcome Modal Close Function
+        function closeWelcomeModal() {
+            const modal = document.getElementById('welcome-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Add event listeners immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close button (X)
+            const closeX = document.getElementById('close-welcome-x');
+            if (closeX) {
+                closeX.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeWelcomeModal();
+                });
+            }
+            
+            // Start Exploring button
+            const closeBtn = document.getElementById('close-welcome-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeWelcomeModal();
+                });
+            }
+            
+            // Close when clicking outside
+            const modal = document.getElementById('welcome-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeWelcomeModal();
+                    }
+                });
+            }
+        });
+
+        function updateMedium() {
+            const medium = document.getElementById('medium').value;
+            const sliders = {
+                density: document.getElementById('density'),
+                velocity: document.getElementById('velocity'),
+                diameter: document.getElementById('diameter'),
+                viscosity: document.getElementById('viscosity')
+            };
+            const valueDisplays = {
+                density: document.getElementById('density-value'),
+                velocity: document.getElementById('velocity-value'),
+                diameter: document.getElementById('diameter-value'),
+                viscosity: document.getElementById('viscosity-value')
+            };
+            const ranges = {
+                liquid: {
+                    density: { min: 714.8070046892694, max: 1050.2098650991347, value: 1000, step: 0.30491169128169576 },
+                    velocity: { min: 0, max: 8.451995705516785, value: 0.5, step: 0.008044757410692683 },
+                    diameter: { min: 0, max: 0.36748163999068206, value: 0.01, step: 0.00034969670529363977 },
+                    viscosity: { min: 0, max: 0.01380828446991151, value: 0.001, step: 1.28175333789182e-05 }
+                },
+                gas: {
+                    density: { min: 0, max: 20.36578206659651, value: 1.2, step: 0.019383363913364544 },
+                    velocity: { min: 0, max: 52.499443580940465, value: 1.0, step: 0.049989938890054514 },
+                    diameter: { min: 0, max: 0.5249885104741552, value: 0.01, step: 0.0004998937567777777 },
+                    viscosity: { min: 6.100923200764568e-07, max: 2.8885055939928103e-05, value: 0.000018, step: 2.5704512381683317e-08 }
+                }
+            };
+            const clssfReports = {
+                gas: [
+                    { class: 'Laminar', precision: '0.99', recall: '0.99', f1: '0.99', support: '29491' },
+                    { class: 'Transitional', precision: '0.99', recall: '0.99', f1: '0.99', support: '26693' },
+                    { class: 'Turbulent', precision: '1.00', recall: '1.00', f1: '1.00', support: '26543' },
+                    { class: 'Accuracy', precision: '', recall: '', f1: '0.99', support: '82727', bg: 'bg-indigo-50' },
+                    { class: 'Macro Avg', precision: '0.99', recall: '0.99', f1: '0.99', support: '82727' },
+                    { class: 'Weighted Avg', precision: '0.99', recall: '0.99', f1: '0.99', support: '82727' }
+                ],
+                liquid: [
+                    { class: 'Laminar', precision: '1.00', recall: '1.00', f1: '1.00', support: '26037' },
+                    { class: 'Transitional', precision: '0.99', recall: '1.00', f1: '0.99', support: '24143' },
+                    { class: 'Turbulent', precision: '1.00', recall: '1.00', f1: '1.00', support: '24794' },
+                    { class: 'Accuracy', precision: '', recall: '', f1: '1.00', support: '74974', bg: 'bg-indigo-50' },
+                    { class: 'Macro Avg', precision: '1.00', recall: '1.00', f1: '1.00', support: '74974' },
+                    { class: 'Weighted Avg', precision: '1.00', recall: '1.00', f1: '1.00', support: '74974' }
+                ]
+            };
+
+            const range = ranges[medium];
+            for (const [key, slider] of Object.entries(sliders)) {
+                slider.min = range[key].min;
+                slider.max = range[key].max;
+                slider.value = range[key].value;
+                slider.step = range[key].step;
+                valueDisplays[key].textContent = parseFloat(range[key].value).toFixed(key === 'viscosity' ? 6 : key === 'diameter' ? 4 : key === 'velocity' ? 3 : 2);
+                const tooltip = slider.parentElement.querySelector('.tooltip');
+                tooltip.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)} (${range[key].min.toFixed(key === 'viscosity' ? 6 : key === 'diameter' ? 4 : key === 'velocity' ? 3 : 2)}–${range[key].max.toFixed(key === 'viscosity' ? 6 : key === 'diameter' ? 4 : key === 'velocity' ? 3 : 2)} ${key === 'density' ? 'kg/m³' : key === 'velocity' ? 'm/s' : key === 'diameter' ? 'm' : 'Pa·s'})`;
+                updateInputValues(key, slider.value, false);
+            }
+
+            // Update classification report table
+            const tbody = document.querySelector('#clssf-report-table tbody');
+            tbody.innerHTML = '';
+            clssfReports[medium].forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = row.bg || '';
+                tr.innerHTML = `
+                    <td class="border border-gray-300 p-2 ${row.class.includes('Avg') || row.class === 'Accuracy' ? 'font-semibold' : ''}">${row.class}</td>
+                    <td class="border border-gray-300 p-2">${row.precision}</td>
+                    <td class="border border-gray-300 p-2">${row.recall}</td>
+                    <td class="border border-gray-300 p-2">${row.f1}</td>
+                    <td class="border border-gray-300 p-2">${row.support}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            predict();
+        }
+
+        function updateValue(id) {
+            const value = document.getElementById(id).value;
+            const precision = id === 'viscosity' ? 6 : id === 'diameter' ? 4 : id === 'velocity' ? 3 : 2;
+            document.getElementById(`${id}-value`).textContent = parseFloat(value).toFixed(precision);
+            updateInputValues(id, value, false);
+            predict();
+        }
+
+        async function predict() {
+            const density = parseFloat(document.getElementById('density').value);
+            const velocity = parseFloat(document.getElementById('velocity').value);
+            const diameter = parseFloat(document.getElementById('diameter').value);
+            const viscosity = parseFloat(document.getElementById('viscosity').value);
+            const medium = document.getElementById('medium').value;
+
+            if (isNaN(density) || isNaN(velocity) || isNaN(diameter) || isNaN(viscosity)) {
+                console.error("Invalid input values:", { density, velocity, diameter, viscosity });
+                document.getElementById('actual-regime').textContent = "Invalid input";
+                document.getElementById('predicted-regime').textContent = "Invalid input";
+                return;
+            }
+            if (density <= 0 || velocity <= 0 || diameter <= 0 || viscosity <= 0) {
+                console.error("Non-positive input values:", { density, velocity, diameter, viscosity });
+                document.getElementById('actual-regime').textContent = "Inputs must be positive";
+                document.getElementById('predicted-regime').textContent = "Inputs must be positive";
+                return;
+            }
+
+            console.log("Sending prediction request:", { density, velocity, diameter, viscosity, medium });
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ density, velocity, diameter, viscosity, medium })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                document.getElementById('actual-regime').textContent = result.actual_regime;
+                document.getElementById('predicted-regime').textContent = result.predicted_regime;
+                console.log("Prediction successful:", result);
+
+                document.querySelector('canvas').style.display = 'block';
+                document.getElementById('network-loader').style.display = 'none';
+                if (typeof redraw === 'function') {
+                    redraw();
+                }
+            } catch (error) {
+                console.error("Prediction error:", error.message);
+                document.getElementById('actual-regime').textContent = `Error: ${error.message}`;
+                document.getElementById('predicted-regime').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Modal functionality
+        const clssfReportBtn = document.getElementById('clssf-report-btn');
+        if (clssfReportBtn) {
+            clssfReportBtn.addEventListener('click', () => {
+                document.getElementById('clssf-report-modal').classList.remove('hidden');
+            });
+        }
+
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                document.getElementById('clssf-report-modal').classList.add('hidden');
+            });
+        }
+
+        // Close modal when clicking outside
+        const clssfModal = document.getElementById('clssf-report-modal');
+        if (clssfModal) {
+            clssfModal.addEventListener('click', (e) => {
+                if (e.target === clssfModal) {
+                    clssfModal.classList.add('hidden');
+                }
+            });
+        }
+
+        window.onload = function() {
+            console.log("Initializing sliders and canvas");
+            updateMedium();
+            if (typeof setup === 'function') {
+                try {
+                    setup();
+                    console.log("p5.js setup called manually");
+                    if (typeof redraw === 'function') {
+                        redraw();
+                    }
+                } catch (e) {
+                    console.error("Error in p5.js setup:", e);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
